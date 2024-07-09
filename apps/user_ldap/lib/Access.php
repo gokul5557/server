@@ -710,6 +710,7 @@ class Access extends LDAPUtility {
 	 */
 	public function cacheUserExists(string $ocName): void {
 		$this->connection->writeToCache('userExists' . $ocName, true);
+		$this->connection->writeToCache('userExistsOnLDAP' . $ocName, true);
 	}
 
 	/**
