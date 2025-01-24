@@ -46,14 +46,6 @@ class ReminderService {
 		$this->cache = $this->cacheFactory->createDistributed('files_reminders');
 	}
 
-	/**
-	 * @throws DoesNotExistException
-	 */
-	public function get(int $id): RichReminder {
-		$reminder = $this->reminderMapper->find($id);
-		return new RichReminder($reminder, $this->root);
-	}
-
 	public function getDueForUser(IUser $user, int $fileId): ?RichReminder {
 		/** @var null|false|Reminder $cachedReminder */
 		$cachedReminder = $this->cache->get("{$user->getUID()}-$fileId");
