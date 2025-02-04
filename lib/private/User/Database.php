@@ -408,7 +408,9 @@ class Database extends ABackend implements
 
 		// Not found by UID so we try also for email, load uid for email.
 		if ($tryEmail) {
+			/** @var string|null $uid Psalm does not get the type correct here */
 			[$uid] = [...$this->config->getUsersForUserValue('settings', 'email', mb_strtolower($loginName)), null];
+
 			// If found, try loading it
 			if ($uid !== null && $uid !== $loginName) {
 				$result = $this->loadUser($uid, false);
