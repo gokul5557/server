@@ -33,8 +33,10 @@ use Sabre\HTTP\Response;
 use Sabre\VObject\Component\VCalendar;
 use Sabre\VObject\Component\VEvent;
 use Sabre\VObject\Component\VFreeBusy;
+use Sabre\VObject\Property\ICalendar\CalAddress;
 use Sabre\VObject\Property\VCard\DateTime;
 use Sabre\VObject\Reader;
+use Sabre\VObject\Writer;
 use Throwable;
 use function array_map;
 use function array_merge;
@@ -249,6 +251,7 @@ class Manager implements IManager {
 			return false;
 		}
 
+		/** @var VEvent $eventObject */
 		$eventObject = $calendarObject->VEVENT;
 
 		if (!isset($eventObject->UID)) {
@@ -261,14 +264,7 @@ class Manager implements IManager {
 			return false;
 		}
 
-		foreach ($eventObject->ATTENDEE as $entry) {
-			$address = trim(str_replace('mailto:', '', $entry->getValue()));
-			if ($address === $recipient) {
-				$attendee = $address;
-				break;
-			}
-		}
-		if (!isset($attendee)) {
+		if (!$this->isRecipientAnAttendee($eventObject, $recipient)) {
 			$this->logger->warning('iMip message event does not contain a attendee that matches the recipient');
 			return false;
 		}
@@ -413,8 +409,7 @@ class Manager implements IManager {
 			return false;
 		}
 
-		$attendee = substr($vEvent->{'ATTENDEE'}->getValue(), 7);
-		if (strcasecmp($recipient, $attendee) !== 0) {
+		if (!$this->isRecipientAnAttendee($vEvent, $recipient)) {
 			$this->logger->warning('Recipient must be an ATTENDEE of this event');
 			return false;
 		}
@@ -469,13 +464,51 @@ class Manager implements IManager {
 			return true;
 		}
 
+		$cancelObject = $this->createCancelVcalendar($vEvent, $recipient);
+		$cancelMessage = Writer::write($cancelObject);
+
 		try {
-			$found->handleIMipMessage($name, $calendarData); // sabre will handle the scheduling behind the scenes
+			$found->handleIMipMessage($name, $cancelMessage); // sabre will handle the scheduling behind the scenes
 			return true;
 		} catch (CalendarException $e) {
 			$this->logger->error('Could not update calendar for iMIP processing', ['exception' => $e]);
 			return false;
 		}
+	}
+
+	private function createCancelVcalendar(VEvent $event, string $recipient): VCalendar {
+		$newVcalendar = new VCalendar();
+		$newVcalendar->{'METHOD'} = 'CANCEL';
+
+		/** @var VEvent $newVevent */
+		$newVevent = $newVcalendar->create('VEVENT');
+		$newVevent->{'ATTENDEE'} = 'mailto:' . $recipient;
+		$newVevent->{'DTSTAMP'} = $event->{'DTSTAMP'};
+		$newVevent->{'ORGANIZER'} = $event->{'ORGANIZER'};
+		$newVevent->{'SEQUENCE'} = $event->{'SEQUENCE'};
+		$newVevent->{'UID'} = $event->{'UID'};
+
+		/*
+		 * Only if referring to an instance  of a recurring calendar component.
+		 * Otherwise, it MUST NOT be present.
+		 */
+		$recurrenceId = $event->{'RECURRENCE-ID'};
+		if ($recurrenceId !== null) {
+			$newVevent->{'RECURRENCE-ID'} = $recurrenceId;
+		}
+
+		/*
+		 * MUST be set to CANCELLED to cancel the entire event.
+		 * If uninviting specific Attendees then MUST NOT be included.
+		 */
+		$status = $event->{'STATUS'};
+		if ($status !== null) {
+			$newVevent->{'STATUS'} = $status;
+		}
+
+		$newVcalendar->add($newVevent);
+
+		return $newVcalendar;
 	}
 
 	public function createEventBuilder(): ICalendarEventBuilder {
@@ -564,5 +597,16 @@ class Manager implements IManager {
 		}
 
 		return $result;
+	}
+
+	private function isRecipientAnAttendee(VEvent $event, string $recipientEmail): bool {
+		foreach ($event->{'ATTENDEE'} as $attendee) {
+			/** @var CalAddress $attendee */
+			$attendeeEmail = substr($attendee->getValue(), 7);
+			if ($recipientEmail === $attendeeEmail) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

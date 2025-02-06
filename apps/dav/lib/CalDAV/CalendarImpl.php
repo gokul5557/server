@@ -232,6 +232,10 @@ class CalendarImpl implements ICreateFromString, IHandleImipMessage {
 		$organizer = $vEvent->{'ORGANIZER'}->getValue();
 		$attendee = $vEvent->{'ATTENDEE'}->getValue();
 
+// Loop over attendees
+// If possible filter attendees for the current principal for the cancel op
+// Log a new issue!!!!
+
 		$iTipMessage->method = $vObject->{'METHOD'}->getValue();
 		if ($iTipMessage->method === 'REQUEST') {
 			$iTipMessage->sender = $organizer;
