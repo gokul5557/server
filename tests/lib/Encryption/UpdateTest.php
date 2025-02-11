@@ -87,7 +87,7 @@ class UpdateTest extends TestCase {
 	public function testUpdate($path, $isDir, $allFiles, $numberOfFiles): void {
 		$updateMock = $this->getUpdateMock(['getOwnerPath']);
 		$updateMock->expects($this->once())->method('getOwnerPath')
-			->willReturnCallback(fn (OCPFile|Folder $node) => '/user/'.$node->getPath());
+			->willReturnCallback(fn (OCPFile|Folder $node) => '/user/' . $node->getPath());
 
 		$this->encryptionManager->expects($this->once())
 			->method('getEncryptionModule')
@@ -169,11 +169,11 @@ class UpdateTest extends TestCase {
 		$updateMock = $this->getUpdateMock(['update']);
 
 		$updateMock->expects($this->once())->method('update')
-				->willReturnCallback(fn (OCPFile|Folder $node) => $this->assertSame(
-					'/folder/test.txt',
-					$node->getPath(),
-					'update needs to be executed for the target destination'
-				));
+			->willReturnCallback(fn (OCPFile|Folder $node) => $this->assertSame(
+				'/folder/test.txt',
+				$node->getPath(),
+				'update needs to be executed for the target destination'
+			));
 
 		$updateMock->postRestore($this->getFileMock('/folder/test.txt', 'user'));
 	}
