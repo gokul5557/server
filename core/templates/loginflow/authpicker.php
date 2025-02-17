@@ -46,7 +46,7 @@ $urlGenerator = $_['urlGenerator'];
 	<br/>
 
 	<p id="redirect-link">
-		<form id="login-form" action="<?php p($urlGenerator->linkToRoute('core.ClientFlowLogin.grantPage', ['stateToken' => $_['stateToken'], 'clientIdentifier' => $_['clientIdentifier'], 'oauthState' => $_['oauthState'], 'user' => $_['user'], 'direct' => $_['direct']])) ?>" method="get">
+		<form id="login-form" action="<?php p($urlGenerator->linkToRoute('core.ClientFlowLogin.grantPage', ['stateToken' => $_['stateToken'], 'clientIdentifier' => $_['clientIdentifier'], 'oauthState' => $_['oauthState'], 'user' => $_['user'], 'direct' => $_['direct'], 'providedRedirectUri' => $_['providedRedirectUri']])) ?>" method="get">
 			<input type="submit" class="login primary icon-confirm-white" value="<?php p($l->t('Log in')) ?>" disabled>
 		</form>
 	</p>
@@ -62,6 +62,7 @@ $urlGenerator = $_['urlGenerator'];
 		</p>
 		<input type="hidden" name="stateToken" value="<?php p($_['stateToken']) ?>" />
 		<input type="hidden" name="requesttoken" value="<?php p($_['requesttoken']) ?>">
+		<input type="hidden" name="providedRedirectUri" value="<?php p($_['providedRedirectUri']) ?>">
 		<?php if ($_['direct'] !== 0) { ?>
 			<input type="hidden" name="direct" value="<?php p($_['direct']) ?>">
 		<?php } ?>
