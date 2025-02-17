@@ -65,7 +65,8 @@ class LoginRedirectorController extends Controller {
 	#[UseSession]
 	public function authorize($client_id,
 		$state,
-		$response_type): TemplateResponse|RedirectResponse {
+		$response_type,
+		string $redirect_uri = ''): TemplateResponse|RedirectResponse {
 		try {
 			$client = $this->clientMapper->getByIdentifier($client_id);
 		} catch (ClientNotFoundException $e) {
@@ -79,6 +80,14 @@ class LoginRedirectorController extends Controller {
 			//Fail
 			$url = $client->getRedirectUri() . '?error=unsupported_response_type&state=' . $state;
 			return new RedirectResponse($url);
+		}
+
+		// TODO: properly retrieve this from config etc.
+		$enableOcClientSupport = true;
+
+		$providedRedirectUri = '';
+		if ($enableOcClientSupport && $client->getRedirectUri() === 'http://localhost:*') {
+			$providedRedirectUri = $redirect_uri;
 		}
 
 		$this->session->set('oauth.state', $state);
@@ -95,6 +104,7 @@ class LoginRedirectorController extends Controller {
 				[
 					'stateToken' => $stateToken,
 					'clientIdentifier' => $client->getClientIdentifier(),
+					'providedRedirectUri' => $providedRedirectUri,
 				]
 			);
 		} else {
@@ -102,6 +112,7 @@ class LoginRedirectorController extends Controller {
 				'core.ClientFlowLogin.showAuthPickerPage',
 				[
 					'clientIdentifier' => $client->getClientIdentifier(),
+					'providedRedirectUri' => $providedRedirectUri,
 				]
 			);
 		}
