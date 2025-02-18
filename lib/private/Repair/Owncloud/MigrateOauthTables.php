@@ -15,6 +15,7 @@ use OCA\OAuth2\Db\AccessTokenMapper;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Authentication\Token\IToken;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\IConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
 use OCP\Security\ICrypto;
@@ -29,6 +30,7 @@ class MigrateOauthTables implements IRepairStep {
 		private ISecureRandom $random,
 		private ITimeFactory $timeFactory,
 		private ICrypto $crypto,
+		private IConfig $config,
 	) {
 	}
 
@@ -169,10 +171,8 @@ class MigrateOauthTables implements IRepairStep {
 			$schema = new SchemaWrapper($this->db);
 		}
 
-		// TODO: properly retrieve this from config etc.
-		$enableOcClientSupport = true;
-
-		if ($enableOcClientSupport) {
+		$enableOcClients = $this->config->getSystemValueBool('oauth2.enable_oc_clients', false);
+		if ($enableOcClients) {
 			$output->info('Delete clients (and their related access tokens) with the redirect_uri starting with oc://');
 		} else {
 			$output->info('Delete clients (and their related access tokens) with the redirect_uri starting with oc:// or ending with *');

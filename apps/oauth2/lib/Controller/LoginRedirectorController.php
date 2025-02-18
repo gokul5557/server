@@ -20,6 +20,7 @@ use OCP\AppFramework\Http\Attribute\UseSession;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IAppConfig;
+use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
@@ -45,6 +46,7 @@ class LoginRedirectorController extends Controller {
 		private IL10N $l,
 		private ISecureRandom $random,
 		private IAppConfig $appConfig,
+		private IConfig $config,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -82,11 +84,10 @@ class LoginRedirectorController extends Controller {
 			return new RedirectResponse($url);
 		}
 
-		// TODO: properly retrieve this from config etc.
-		$enableOcClientSupport = true;
+		$enableOcClients = $this->config->getSystemValueBool('oauth2.enable_oc_clients', false);
 
 		$providedRedirectUri = '';
-		if ($enableOcClientSupport && $client->getRedirectUri() === 'http://localhost:*') {
+		if ($enableOcClients && $client->getRedirectUri() === 'http://localhost:*') {
 			$providedRedirectUri = $redirect_uri;
 		}
 

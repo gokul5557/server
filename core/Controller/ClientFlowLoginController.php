@@ -26,6 +26,7 @@ use OCP\Authentication\Exceptions\InvalidTokenException;
 use OCP\Authentication\Token\IToken;
 use OCP\Defaults;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
@@ -55,6 +56,7 @@ class ClientFlowLoginController extends Controller {
 		private ICrypto $crypto,
 		private IEventDispatcher $eventDispatcher,
 		private ITimeFactory $timeFactory,
+		private IConfig $config,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -274,11 +276,10 @@ class ClientFlowLoginController extends Controller {
 			$accessToken->setCodeCreatedAt($this->timeFactory->now()->getTimestamp());
 			$this->accessTokenMapper->insert($accessToken);
 
-			// TODO: properly retrieve this from config etc.
-			$enableOcClientSupport = true;
+			$enableOcClients = $this->config->getSystemValueBool('oauth2.enable_oc_clients', false);
 
 			$redirectUri = $client->getRedirectUri();
-			if ($enableOcClientSupport && $redirectUri === 'http://localhost:*') {
+			if ($enableOcClients && $redirectUri === 'http://localhost:*') {
 				// Sanity check untrusted redirect URI provided by the client first
 				if (!preg_match('/^http:\/\/localhost:[0-9]+$/', $providedRedirectUri)) {
 					$response = new Response();
