@@ -64,7 +64,7 @@ class ImportLegacyOcClient extends Command {
 		$hashedClientSecret = bin2hex($this->crypto->calculateHMAC($clientSecret));
 
 		$client = new Client();
-		$client->setName('OwnCloud Desktop Client');
+		$client->setName('ownCloud Desktop Client');
 		$client->setRedirectUri('http://localhost:*');
 		$client->setClientIdentifier($clientId);
 		$client->setSecret($hashedClientSecret);
