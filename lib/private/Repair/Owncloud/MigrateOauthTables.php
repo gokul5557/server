@@ -186,7 +186,7 @@ class MigrateOauthTables implements IRepairStep {
 			->where(
 				$qbSelectClientId->expr()->iLike('redirect_uri', $qbDeleteAccessTokens->createNamedParameter('oc://%', IQueryBuilder::PARAM_STR))
 			);
-		if (!$enableOcClientSupport) {
+		if (!$enableOcClients) {
 			$qbSelectClientId->orWhere(
 				$qbSelectClientId->expr()->iLike('redirect_uri', $qbDeleteAccessTokens->createNamedParameter('%*', IQueryBuilder::PARAM_STR))
 			);
@@ -204,7 +204,7 @@ class MigrateOauthTables implements IRepairStep {
 			->where(
 				$qbDeleteClients->expr()->iLike('redirect_uri', $qbDeleteClients->createNamedParameter('oc://%', IQueryBuilder::PARAM_STR))
 			);
-		if (!$enableOcClientSupport) {
+		if (!$enableOcClients) {
 			$qbDeleteClients->orWhere(
 				$qbDeleteClients->expr()->iLike('redirect_uri', $qbDeleteClients->createNamedParameter('%*', IQueryBuilder::PARAM_STR))
 			);
