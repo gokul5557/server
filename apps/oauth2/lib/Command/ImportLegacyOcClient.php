@@ -23,9 +23,9 @@ class ImportLegacyOcClient extends Command {
 	private const ARGUMENT_CLIENT_SECRET = 'client-secret';
 
 	public function __construct(
-		private readonly IConfig $config,
-		private readonly ICrypto $crypto,
-		private readonly ClientMapper $clientMapper,
+		private IConfig $config,
+		private ICrypto $crypto,
+		private ClientMapper $clientMapper,
 	) {
 		parent::__construct();
 	}
@@ -64,7 +64,7 @@ class ImportLegacyOcClient extends Command {
 		$hashedClientSecret = bin2hex($this->crypto->calculateHMAC($clientSecret));
 
 		$client = new Client();
-		$client->setName('OwnCloud Desktop Client');
+		$client->setName('ownCloud Desktop Client');
 		$client->setRedirectUri('http://localhost:*');
 		$client->setClientIdentifier($clientId);
 		$client->setSecret($hashedClientSecret);
