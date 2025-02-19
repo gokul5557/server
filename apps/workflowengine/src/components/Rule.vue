@@ -29,8 +29,11 @@
 		<div class="flow-icon icon-confirm" />
 		<div class="action">
 			<Operation :operation="operation" :colored="false">
-				<div v-if="operation.component"
-					ref="operationComponent" />
+				<component v-if="operation.component"
+						   :is="operation.component"
+						   @input="updateOperationByEvent"
+						   ref="operationComponent"
+				/>
 				<component :is="operation.options"
 					v-else-if="operation.options"
 					v-model="rule.operation"
@@ -133,12 +136,9 @@ export default {
 	mounted() {
 		this.originalRule = JSON.parse(JSON.stringify(this.rule))
 
+
 		if (this.operation?.component) {
-			const View = this.operation.component
-			this.component = new View()
-			this.component.$mount(this.$refs.operationComponent)
-			this.component.$on('input', this.updateOperation)
-			this.component.$props.value = this.rule.operation
+			this.$refs.operationComponent.value = this.rule.operation
 		} else if (this.operation?.options) {
 			// keeping this in an else for apps that try to be backwards compatible and may ship both
 			// to be removed in 03/2028
@@ -148,8 +148,12 @@ export default {
 	methods: {
 		async updateOperation(operation) {
 			this.$set(this.rule, 'operation', operation)
-			this.component.$props.value = operation
-			await this.updateRule()
+			this.updateRule()
+		},
+		async updateOperationByEvent(event) {
+			this.$set(this.rule, 'operation', event.detail[0])
+			this.$refs.operationComponent.value = this.rule.operation
+			this.updateRule()
 		},
 		validate(/* state */) {
 			this.error = null
@@ -186,6 +190,7 @@ export default {
 			if (this.rule.id < 0) {
 				this.$store.dispatch('removeRule', this.rule)
 			} else {
+				this.$refs.operationComponent.value = this.originalRule.operation
 				this.$store.dispatch('updateRule', this.originalRule)
 				this.originalRule = JSON.parse(JSON.stringify(this.rule))
 				this.dirty = false
